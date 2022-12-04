@@ -8,6 +8,7 @@ import "core:fmt"
 day1_input : string = #load("day1.txt")
 day2_input : string = #load("day2.txt")
 day3_input : string = #load("day3.txt")
+day4_input : string = #load("day4.txt")
 
 day1 :: proc() {
 	elf : int
@@ -134,6 +135,35 @@ day3 :: proc() {
 	fmt.println("Sum 2:", sum2)
 }
 
+day4 :: proc() {
+	// Part 1 count
+	contains_count := 0
+	// Part 2 count
+	overlaps_count := 0
+	input := strings.clone(day4_input)
+	for str in strings.split_iterator(&input, "\n") {
+		parts := strings.split(str, ",")
+		assert(len(parts) == 2)
+		left := parts[0]
+		right := parts[1]
+
+		left_range := strings.split(left, "-")
+		right_range := strings.split(right, "-")
+		assert(len(left_range) == 2)
+		assert(len(right_range) == 2)
+
+		left_min, _ := strconv.parse_int(left_range[0])
+		left_max, _ := strconv.parse_int(left_range[1])
+		right_min, _ := strconv.parse_int(right_range[0])
+		right_max, _ := strconv.parse_int(right_range[1])
+
+		contains_count += int((left_min <= right_min && left_max >= right_max) || (right_min <= left_min && right_max >= left_max))
+		overlaps_count += int((left_max >= right_min && left_max <= right_max) || (right_max >= left_min && right_max <= left_max))
+	}
+	fmt.println("Contains count:", contains_count)
+	fmt.println("Overlaps count:", overlaps_count)
+}
+
 main :: proc() {
-	day3()
+	day4()
 }
