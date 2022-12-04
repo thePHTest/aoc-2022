@@ -154,16 +154,14 @@ day4 :: proc() {
 
 day4_input : string = #load("day4.txt")
 day4_v2 :: proc() {
-	contains_count := 0
-	overlaps_count := 0
+	contains_count, overlaps_count : int
 	for str in strings.split_iterator(&day4_input, "\n") {
 		parts := strings.split_multi(str, {",", "-"})
 		vals := slice.mapper(parts, strconv.atoi)
 		contains_count += int((vals[0] <= vals[2] && vals[1] >= vals[3]) || (vals[2] <= vals[0] && vals[3] >= vals[1]))
 		overlaps_count += int((vals[1] >= vals[2] && vals[1] <= vals[3]) || (vals[3] >= vals[0] && vals[3] <= vals[1]))
 	}
-	fmt.println("Contains count:", contains_count)
-	fmt.println("Overlaps count:", overlaps_count)
+	fmt.printf("Contains count: {}, Overlaps count: {}\n", contains_count, overlaps_count)
 }
 
 main :: proc() {
