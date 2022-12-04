@@ -141,21 +141,11 @@ day4 :: proc() {
 	// Part 2 count
 	overlaps_count := 0
 	for str in strings.split_iterator(&day4_input, "\n") {
-		parts := strings.split(str, ",")
-		assert(len(parts) == 2)
-		left := parts[0]
-		right := parts[1]
-
-		left_range := strings.split(left, "-")
-		right_range := strings.split(right, "-")
-		assert(len(left_range) == 2)
-		assert(len(right_range) == 2)
-
-		left_min, _ := strconv.parse_int(left_range[0])
-		left_max, _ := strconv.parse_int(left_range[1])
-		right_min, _ := strconv.parse_int(right_range[0])
-		right_max, _ := strconv.parse_int(right_range[1])
-
+		parts := strings.split_multi(str, {",", "-"})
+		left_min, _ := strconv.parse_int(parts[0])
+		left_max, _ := strconv.parse_int(parts[1])
+		right_min, _ := strconv.parse_int(parts[2])
+		right_max, _ := strconv.parse_int(parts[3])
 		contains_count += int((left_min <= right_min && left_max >= right_max) || (right_min <= left_min && right_max >= left_max))
 		overlaps_count += int((left_max >= right_min && left_max <= right_max) || (right_max >= left_min && right_max <= left_max))
 	}
