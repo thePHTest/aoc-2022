@@ -8,7 +8,6 @@ import "core:fmt"
 day1_input : string = #load("day1.txt")
 day2_input : string = #load("day2.txt")
 day3_input : string = #load("day3.txt")
-day4_input : string = #load("day4.txt")
 
 day1 :: proc() {
 	elf : int
@@ -153,7 +152,8 @@ day4 :: proc() {
 	fmt.println("Overlaps count:", overlaps_count)
 }
 
-day4_concise :: proc() {
+day4_input : string = #load("day4.txt")
+day4_v2 :: proc() {
 	contains_count := 0
 	overlaps_count := 0
 	for str in strings.split_iterator(&day4_input, "\n") {
@@ -167,5 +167,5 @@ day4_concise :: proc() {
 }
 
 main :: proc() {
-	day4_concise()
+	day4_v2()
 }
