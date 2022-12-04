@@ -7,6 +7,7 @@ import "core:fmt"
 
 day1_input : string = #load("day1.txt")
 day2_input : string = #load("day2.txt")
+day3_input : string = #load("day3.txt")
 
 day1 :: proc() {
 	elf : int
@@ -64,12 +65,75 @@ day2 :: proc() {
 	fmt.println(score_pt1)
 
 	score_pt2 := 0
-	for str in strings.split_iterator(&day2_input, "\n") {
+	for str in strings.split_iterator(&input, "\n") {
 		score_pt2 += rps_map_2[str]
 	}
 	fmt.println(score_pt2)
 }
 
+Ruck :: struct {
+	left: string,
+	right: string,
+	priority : u8,
+}
+
+day3 :: proc() {
+	rucks := make([dynamic]Ruck)
+	// Part 1
+	input := strings.clone(day3_input)
+	for str in strings.split_iterator(&input, "\n") {
+		ruck := new(Ruck)
+		ruck.left = str[:(len(str)/2)]
+		ruck.right = str[len(str)/2:]
+
+		for r in ruck.left {
+			if strings.contains_rune(ruck.right, r) != -1 {
+				if u8(r) > 96 {
+					ruck.priority = u8(r) - 96
+				} else {
+					ruck.priority = u8(r) - 38
+				}
+				fmt.println(r, ruck.priority)
+			}
+		}
+		append(&rucks, ruck^)
+	}
+	sum := 0
+	for r in rucks {
+		sum += int(r.priority)
+	}
+	fmt.println("Sum:", sum)
+
+	// Part 2
+	priorities := make([dynamic]u8)
+	lines := strings.split(day3_input, "\n")
+	lines = lines[0:len(lines) - 1] // Remove extra line at end
+	str, str2, str3 : string
+	ok : bool
+	for idx : int = 0; idx < len(lines) - 2; idx+=3 {
+		str = lines[idx]
+		str2 = lines[idx + 1]
+		str3 = lines[idx + 2]
+		for r in str {
+			if strings.contains_rune(str2, r) != -1 && strings.contains_rune(str3, r) != -1 {
+				priority : u8
+				if u8(r) > 96 {
+					priority = u8(r) - 96
+				} else {
+					priority = u8(r) - 38
+				}
+				append(&priorities, priority)
+				break
+			}
+		}
+	}
+	sum2 := 0
+	for p in priorities {
+		sum2 += int(p)
+	}
+	fmt.println("Sum 2:", sum2)
+}
+
 main :: proc() {
-	day2()
+	day3()
 }
