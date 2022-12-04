@@ -140,8 +140,7 @@ day4 :: proc() {
 	contains_count := 0
 	// Part 2 count
 	overlaps_count := 0
-	input := strings.clone(day4_input)
-	for str in strings.split_iterator(&input, "\n") {
+	for str in strings.split_iterator(&day4_input, "\n") {
 		parts := strings.split(str, ",")
 		assert(len(parts) == 2)
 		left := parts[0]
