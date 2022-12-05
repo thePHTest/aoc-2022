@@ -192,12 +192,12 @@ day5 :: proc() {
 		for str in strings.split_iterator(&input, "\n") {
 			parts := strings.split(str, " ")
 			count := strconv.atoi(parts[1])
-			start := strconv.atoi(parts[3])
-			end := strconv.atoi(parts[5])
+			start := strconv.atoi(parts[3])-1
+			end := strconv.atoi(parts[5])-1
 
 			for i in 0 ..< count {
-				val := pop(&stacks[start-1])
-				append(&stacks[end-1], val)
+				val := pop(&stacks[start])
+				append(&stacks[end], val)
 			}
 		}
 
@@ -232,14 +232,13 @@ day5 :: proc() {
 		for str in strings.split_iterator(&input, "\n") {
 			parts := strings.split(str, " ")
 			count := strconv.atoi(parts[1])
-			start := strconv.atoi(parts[3])
-			end := strconv.atoi(parts[5])
+			start := strconv.atoi(parts[3])-1
+			end := strconv.atoi(parts[5])-1
 
-			for i in 0 ..< count {
-				val := stacks[start-1][len(stacks[start-1])-count+i]
-				append(&stacks[end-1], val)
-			}
-			remove_range(&stacks[start-1], len(stacks[start-1])-count, len(stacks[start-1]))
+			start_stack := &stacks[start]
+			vals := start_stack[len(start_stack)-count:]
+			append(&stacks[end], ..vals)
+			remove_range(start_stack, len(start_stack)-count, len(start_stack))
 		}
 
 		fmt.println("Part 2:")
