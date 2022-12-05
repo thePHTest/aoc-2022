@@ -8,6 +8,8 @@ import "core:fmt"
 day1_input : string = #load("day1.txt")
 day2_input : string = #load("day2.txt")
 day3_input : string = #load("day3.txt")
+day4_input : string = #load("day4.txt")
+day5_input : string = #load("day5.txt")
 
 day1 :: proc() {
 	elf : int
@@ -152,7 +154,6 @@ day4 :: proc() {
 	fmt.println("Overlaps count:", overlaps_count)
 }
 
-day4_input : string = #load("day4.txt")
 day4_v2 :: proc() {
 	contains_count, overlaps_count : int
 	for str in strings.split_iterator(&day4_input, "\n") {
@@ -164,6 +165,90 @@ day4_v2 :: proc() {
 	fmt.printf("Contains count: {}, Overlaps count: {}\n", contains_count, overlaps_count)
 }
 
+day5 :: proc() {
+	{
+		input := day5_input
+		stacks := make([dynamic][dynamic]rune)
+		// NOTE: Removed this input from day5.txt to just parse the moves
+		stack1 := [dynamic]rune{'S', 'T', 'H', 'F', 'W', 'R'}
+		stack2 := [dynamic]rune{'S', 'G', 'D', 'Q', 'W'}
+		stack3 := [dynamic]rune{'B', 'T', 'W'}
+		stack4 := [dynamic]rune{'D', 'R', 'W', 'T', 'N', 'Q', 'Z', 'J'}
+		stack5 := [dynamic]rune{'F', 'B', 'H', 'G', 'L', 'V', 'T', 'Z'}
+		stack6 := [dynamic]rune{'L', 'P', 'T', 'C', 'V', 'B', 'S', 'G'}
+		stack7 := [dynamic]rune{'Z', 'B', 'R', 'T', 'W', 'G', 'P'}
+		stack8 := [dynamic]rune{'N', 'G', 'M', 'T', 'C', 'J', 'R'}
+		stack9 := [dynamic]rune{'L', 'G', 'B', 'W'}
+		append(&stacks, stack1)
+		append(&stacks, stack2)
+		append(&stacks, stack3)
+		append(&stacks, stack4)
+		append(&stacks, stack5)
+		append(&stacks, stack6)
+		append(&stacks, stack7)
+		append(&stacks, stack8)
+		append(&stacks, stack9)
+
+		for str in strings.split_iterator(&input, "\n") {
+			parts := strings.split(str, " ")
+			count := strconv.atoi(parts[1])
+			start := strconv.atoi(parts[3])
+			end := strconv.atoi(parts[5])
+
+			for i in 0 ..< count {
+				val := pop(&stacks[start-1])
+				append(&stacks[end-1], val)
+			}
+		}
+
+		for s in stacks {
+			fmt.println(s[len(s)-1])
+		}
+	}
+	// Part 2
+	{
+		input := day5_input
+		stacks := make([dynamic][dynamic]rune)
+		// NOTE: Removed this input from day5.txt to just parse the moves
+		stack1 := [dynamic]rune{'S', 'T', 'H', 'F', 'W', 'R'}
+		stack2 := [dynamic]rune{'S', 'G', 'D', 'Q', 'W'}
+		stack3 := [dynamic]rune{'B', 'T', 'W'}
+		stack4 := [dynamic]rune{'D', 'R', 'W', 'T', 'N', 'Q', 'Z', 'J'}
+		stack5 := [dynamic]rune{'F', 'B', 'H', 'G', 'L', 'V', 'T', 'Z'}
+		stack6 := [dynamic]rune{'L', 'P', 'T', 'C', 'V', 'B', 'S', 'G'}
+		stack7 := [dynamic]rune{'Z', 'B', 'R', 'T', 'W', 'G', 'P'}
+		stack8 := [dynamic]rune{'N', 'G', 'M', 'T', 'C', 'J', 'R'}
+		stack9 := [dynamic]rune{'L', 'G', 'B', 'W'}
+		append(&stacks, stack1)
+		append(&stacks, stack2)
+		append(&stacks, stack3)
+		append(&stacks, stack4)
+		append(&stacks, stack5)
+		append(&stacks, stack6)
+		append(&stacks, stack7)
+		append(&stacks, stack8)
+		append(&stacks, stack9)
+
+		for str in strings.split_iterator(&input, "\n") {
+			parts := strings.split(str, " ")
+			count := strconv.atoi(parts[1])
+			start := strconv.atoi(parts[3])
+			end := strconv.atoi(parts[5])
+
+			for i in 0 ..< count {
+				val := stacks[start-1][len(stacks[start-1])-count+i]
+				append(&stacks[end-1], val)
+			}
+			remove_range(&stacks[start-1], len(stacks[start-1])-count, len(stacks[start-1]))
+		}
+
+		fmt.println("Part 2:")
+		for s in stacks {
+			fmt.println(s[len(s)-1])
+		}
+	}
+}
+
 main :: proc() {
-	day4_v2()
+	day5()
 }
