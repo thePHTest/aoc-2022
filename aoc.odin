@@ -263,7 +263,7 @@ day6 :: proc() {
 		chars[v] += 1
 	}
 
-	keys, _ := slice.map_keys(chars)
+	keys, err := slice.map_keys(chars, context.temp_allocator)
 	for len(keys) < 14 {
 		oldest := window[0]
 		assert(oldest in chars, fmt.tprint(idx, oldest, chars, window))
@@ -278,7 +278,7 @@ day6 :: proc() {
 		newest := window[13]
 		chars[newest] = chars[newest] + 1
 		assert(chars[newest] >= 1)
-		keys, _ = slice.map_keys(chars)
+		keys, err = slice.map_keys(chars, context.temp_allocator)
 	}
 	fmt.println(utf8.runes_to_string(window))
 	fmt.println(chars)
