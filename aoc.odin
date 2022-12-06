@@ -280,7 +280,7 @@ day6 :: proc() {
 		assert(chars[newest] >= 1)
 		keys, err = slice.map_keys(chars, context.temp_allocator)
 	}
-	fmt.println(utf8.runes_to_string(window))
+	fmt.println(window)
 	fmt.println(chars)
 	fmt.println(idx+14)
 }
