@@ -1,5 +1,6 @@
 package day1
 
+import "core:unicode/utf8"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
@@ -10,6 +11,7 @@ day2_input : string = #load("day2.txt")
 day3_input : string = #load("day3.txt")
 day4_input : string = #load("day4.txt")
 day5_input : string = #load("day5.txt")
+day6_input : string = #load("day6.txt")
 
 day1 :: proc() {
 	elf : int
@@ -248,6 +250,41 @@ day5 :: proc() {
 	}
 }
 
+day6 :: proc() {
+	runes : [dynamic]rune
+	for r in day6_input {
+		append(&runes, r)
+	}
+	idx := 0
+	window := runes[idx:14]
+	// Init:
+	chars : map[rune]int
+	for v in window {
+		chars[v] += 1
+	}
+
+	keys, _ := slice.map_keys(chars)
+	for len(keys) < 14 {
+		oldest := window[0]
+		assert(oldest in chars, fmt.tprint(idx, oldest, chars, window))
+		chars[oldest] -= 1
+		if (chars[oldest] == 0) {
+			delete_key(&chars, oldest)
+		} else {
+			assert(chars[oldest] > 0)
+		}
+		idx += 1
+		window = runes[idx:idx+14]
+		newest := window[13]
+		chars[newest] = chars[newest] + 1
+		assert(chars[newest] >= 1)
+		keys, _ = slice.map_keys(chars)
+	}
+	fmt.println(utf8.runes_to_string(window))
+	fmt.println(chars)
+	fmt.println(idx+14)
+}
+
 main :: proc() {
-	day5()
+	day6()
 }
