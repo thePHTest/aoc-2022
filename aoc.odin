@@ -12,6 +12,8 @@ day3_input : string = #load("day3.txt")
 day4_input : string = #load("day4.txt")
 day5_input : string = #load("day5.txt")
 day6_input : string = #load("day6.txt")
+day7_input : string = #load("day7.txt")
+day7_test_input : string = #load("day7_test.txt")
 
 day1 :: proc() {
 	elf : int
@@ -285,6 +287,107 @@ day6 :: proc() {
 	fmt.println(idx+14)
 }
 
+File :: struct {
+	size : int,
+	name : string,
+}
+
+Dir :: struct {
+	parent : ^Dir,
+	children : map[string]^Dir,
+	files : [dynamic]File,
+	total_files_size : int,
+	total_size : int,
+}
+
+compute_size :: proc(dir: ^Dir, under_limit_sum : ^int) -> int {
+	children_sum := 0
+	for k,d in dir.children {
+		cs := compute_size(d, under_limit_sum)
+		children_sum += cs
+	}
+	dir.total_size = dir.total_files_size + children_sum
+	if dir.total_size <= 100000 {
+		(under_limit_sum^) += dir.total_size
+	}
+	return dir.total_size
+}
+
+day7 :: proc() {
+	input := day7_input
+	root : Dir
+	root.parent = nil
+	root.files = make([dynamic]File)
+	curr_dir := &root
+
+	lines := strings.split(input, "\n")
+	lines = lines[:len(lines)-1]
+	i := 0
+	for i < len(lines) {
+		str := lines[i]
+		if strings.has_prefix(str, "$ cd") {
+			new_dir := strings.cut(str, 5, 0)
+			new_dir = strings.trim_space(new_dir)
+			if new_dir == "/" {
+				curr_dir = &root
+			} else if new_dir == ".." {
+				curr_dir = curr_dir.parent
+			} else {
+				curr_dir = curr_dir.children[new_dir]
+			}
+			i += 1
+		} else if strings.has_prefix(str, "$ ls") {
+			i += 1
+			str = lines[i]
+			for !strings.has_prefix(str, "$") {
+				if strings.has_prefix(str, "dir") {
+					new_dir_str := strings.cut(str, 4, 0)
+					new_dir_str = strings.trim_space(new_dir_str)
+					new_dir := new(Dir)
+					new_dir.parent = curr_dir
+					new_dir.files = make([dynamic]File)
+					curr_dir.children[new_dir_str] = new_dir
+				} else {
+					parts := strings.split_multi(str, {" ", "\n"})
+					size := strconv.atoi(parts[0])
+					filename := parts[1]
+					curr_dir.total_files_size += size
+					append(&curr_dir.files, File{size, filename})
+				}
+				i += 1
+				if i >= len(lines) do break
+				str = lines[i]
+			}
+		}
+	}
+	fmt.println(root)
+
+	under_limit_sum := 0
+	compute_size(&root, &under_limit_sum)
+	// Part 1
+	fmt.println(under_limit_sum)
+
+	// Part 2
+	update_size := 30000000
+	unused_space := 70000000 - root.total_size
+	needed_space := update_size - unused_space
+
+	min_size_found := root.total_size
+	find_dir(&root, needed_space, &min_size_found)
+
+	find_dir :: proc(dir: ^Dir, needed_space: int, min_size_found: ^int) {
+		for k,d in dir.children {
+			if d.total_size <= min_size_found^ && d.total_size >= needed_space {
+				min_size_found^ = d.total_size
+				find_dir(d, needed_space, min_size_found)
+			}
+		}
+	}
+
+	fmt.println("Needed:", needed_space)
+	fmt.println("Found:", min_size_found)
+}
+
 main :: proc() {
-	day6()
+	day7()
 }
