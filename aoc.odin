@@ -286,34 +286,34 @@ day6 :: proc() {
 	fmt.println(chars)
 	fmt.println(idx+14)
 }
-
-File :: struct {
-	size : int,
-	name : string,
-}
-
-Dir :: struct {
-	parent : ^Dir,
-	children : map[string]^Dir,
-	files : [dynamic]File,
-	total_files_size : int,
-	total_size : int,
-}
-
-compute_size :: proc(dir: ^Dir, under_limit_sum : ^int) -> int {
-	children_sum := 0
-	for k,d in dir.children {
-		cs := compute_size(d, under_limit_sum)
-		children_sum += cs
-	}
-	dir.total_size = dir.total_files_size + children_sum
-	if dir.total_size <= 100000 {
-		(under_limit_sum^) += dir.total_size
-	}
-	return dir.total_size
-}
-
 day7 :: proc() {
+	File :: struct {
+		size : int,
+		name : string,
+	}
+
+	Dir :: struct {
+		parent : ^Dir,
+		children : map[string]^Dir,
+		files : [dynamic]File,
+		total_files_size : int,
+		total_size : int,
+	}
+
+	compute_size :: proc(dir: ^Dir, under_limit_sum : ^int) -> int {
+		children_sum := 0
+		for k,d in dir.children {
+			cs := compute_size(d, under_limit_sum)
+			children_sum += cs
+		}
+		dir.total_size = dir.total_files_size + children_sum
+		if dir.total_size <= 100000 {
+			(under_limit_sum^) += dir.total_size
+		}
+		return dir.total_size
+	}
+
+
 	input := day7_input
 	root : Dir
 	root.parent = nil
@@ -360,12 +360,11 @@ day7 :: proc() {
 			}
 		}
 	}
-	fmt.println(root)
 
 	under_limit_sum := 0
 	compute_size(&root, &under_limit_sum)
 	// Part 1
-	fmt.println(under_limit_sum)
+	fmt.println("Under Limit Sum:", under_limit_sum)
 
 	// Part 2
 	update_size := 30000000
