@@ -286,6 +286,7 @@ day6 :: proc() {
 	fmt.println(chars)
 	fmt.println(idx+14)
 }
+
 day7 :: proc() {
 	File :: struct {
 		size : int,
@@ -313,10 +314,8 @@ day7 :: proc() {
 		return dir.total_size
 	}
 
-
 	input := day7_input
 	root : Dir
-	root.parent = nil
 	root.files = make([dynamic]File)
 	curr_dir := &root
 
