@@ -14,6 +14,8 @@ day5_input : string = #load("day5.txt")
 day6_input : string = #load("day6.txt")
 day7_input : string = #load("day7.txt")
 day7_test_input : string = #load("day7_test.txt")
+day8_input : string = #load("day8.txt")
+day8_test_input : string = #load("day8_test.txt")
 
 day1 :: proc() {
 	elf : int
@@ -386,6 +388,132 @@ day7 :: proc() {
 	fmt.println("Found:", min_size_found)
 }
 
+day8 :: proc() {
+	input := day8_input
+	lines := strings.split(input, "\n")
+	for line in &lines {
+		line = strings.trim_space(line)
+	}
+	lines = lines[: len(lines)-1] // Remove final empty line
+	width := len(lines[0])
+	height := len(lines)
+	trees := make([]int, width*height)
+	visible := make([]bool, width*height)
+	for line, ridx in lines {
+		for r, cidx in line {
+			trees[ridx*width + cidx] = strconv.atoi(utf8.runes_to_string({r}, context.temp_allocator))
+		}
+	}
+
+	// Visbility from left edge
+	for ridx in 0..<height {
+		max_height := min(int)
+		for cidx in 0..<width {
+			tree := trees[ridx*width + cidx]
+			if tree > max_height {
+				visible[ridx*width + cidx] = true
+				max_height = tree
+			}
+		}
+	}
+
+	// Visbility from right edge
+	for ridx in 0..<height {
+		max_height := min(int)
+		for cidx in 0..<width {
+			tree := trees[ridx*width + width - 1 - cidx]
+			if tree > max_height {
+				visible[ridx*width + width - 1 - cidx] = true
+				max_height = tree
+			}
+		}
+	}
+
+	// Visbility from top edge
+	for cidx in 0..<width {
+		max_height := min(int)
+		for ridx in 0..<height {
+			tree := trees[ridx*width + cidx]
+			if tree > max_height {
+				visible[ridx*width + cidx] = true
+				max_height = tree
+			}
+		}
+	}
+
+	// Visbility from bottom edge
+	for cidx in 0..<width {
+		max_height := min(int)
+		for ridx in 0..<height {
+			tree := trees[(width-1-ridx)*width + cidx]
+			if tree > max_height {
+				visible[(width-1-ridx)*width + cidx] = true
+				max_height = tree
+			}
+		}
+	}
+
+	count := 0
+	for v in visible {
+		count += int(v)
+	}
+
+	/*for ridx in 0..<width {*/
+		/*fmt.println(visible[ridx*width:][:width])*/
+	/*}*/
+	fmt.println(count)
+
+	score := make([]int, width*height)
+	// Part 2
+	max_score := min(int)
+	for ridx in 0..<height {
+		for cidx in 0..<width {
+			tree := trees[ridx*width + cidx]
+			left_score, right_score, up_score, down_score : int
+			// Iterate left
+			for left in 1..=cidx {
+				left_score += 1
+				opt := trees[ridx*width + cidx - left]
+				if opt >= tree {
+					break
+				}
+			}
+			// Iterate right
+			for right in (cidx+1)..<width {
+				right_score += 1
+				opt := trees[ridx*width + right]
+				if opt >= tree {
+					break
+				}
+			}
+			// Iterate down
+			for down in (ridx+1)..<height {
+				down_score += 1
+				opt := trees[down*width + cidx]
+				if opt >= tree {
+					break
+				}
+			}
+			// Iterate up
+			for up in 1..=ridx {
+				up_score += 1
+				opt := trees[(ridx-up)*width + cidx]
+				if opt >= tree {
+					break
+				}
+			}
+			scenic_score := left_score * right_score * up_score * down_score
+			max_score = max(max_score, scenic_score)
+			score[ridx*width + cidx] = scenic_score
+		}
+	}
+
+	/*for ridx in 0..<width {*/
+		/*fmt.println(score[ridx*width:][:width])*/
+	/*}*/
+	fmt.println(max_score)
+}
+
 main :: proc() {
-	day7()
+	day8()
 }
