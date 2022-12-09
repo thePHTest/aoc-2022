@@ -1,10 +1,11 @@
 package day1
 
-import "core:unicode/utf8"
+import "core:fmt"
+import "core:math"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
-import "core:fmt"
+import "core:unicode/utf8"
 
 day1_input : string = #load("day1.txt")
 day2_input : string = #load("day2.txt")
@@ -16,6 +17,7 @@ day7_input : string = #load("day7.txt")
 day7_test_input : string = #load("day7_test.txt")
 day8_input : string = #load("day8.txt")
 day8_test_input : string = #load("day8_test.txt")
+day9_input : string = #load("day9.txt")
 
 day1 :: proc() {
 	elf : int
@@ -514,6 +516,124 @@ day8 :: proc() {
 	fmt.println(max_score)
 }
 
+day9_part1 :: proc() {
+	input := day9_input
+	grid : map[[2]int]bool
+	grid[{0,0}] = true
+
+	head : [2]int = {0, 0}
+	tail : [2]int = {0, 0}
+
+	adjacent :: proc(a,b : [2]int) -> bool {
+		return !(abs(a.x-b.x) > 1 || abs(a.y-b.y) > 1)
+	}
+
+	for str in strings.split_iterator(&input, "\n") {
+		parts := strings.split_multi(str, {" ", "\n"})
+		dir := parts[0]
+		amount := strconv.atoi(parts[1])
+
+		switch dir {
+		case "U":
+			for i in 0..<amount {
+				head.y += 1
+				if !adjacent(head, tail) {
+					tail = {head.x, tail.y + 1}
+					grid[tail] = true
+				}
+			}
+		case "D":
+			for i in 0..<amount {
+				head.y -= 1
+				if !adjacent(head, tail) {
+					tail = {head.x, tail.y - 1}
+					grid[tail] = true
+				}
+			}
+		case "L":
+			for i in 0..<amount {
+				head.x -= 1
+				if !adjacent(head, tail) {
+					tail = {tail.x - 1, head.y}
+					grid[tail] = true
+				}
+			}
+		case "R":
+			for i in 0..<amount {
+				head.x += 1
+				if !adjacent(head, tail) {
+					tail = {tail.x + 1, head.y}
+					grid[tail] = true
+				}
+			}
+		case:
+			unreachable()
+		}
+	}
+	keys, _ := slice.map_keys(grid)
+	fmt.println(len(keys))
+}
+
+day9_part2 :: proc() {
+	input := day9_input
+	grid : map[[2]int]bool
+	grid[{0,0}] = true
+
+	head : [2]int = {0, 0}
+	tails : [9][2]int = {}
+
+	adjacent :: proc(a,b : [2]int) -> bool {
+		return !(abs(a.x-b.x) > 1 || abs(a.y-b.y) > 1)
+	}
+
+	move :: proc(tail : ^[2]int, head: [2]int) {
+		if tail.x == head.x {
+			tail.y += int(math.sign(f32(head.y - tail.y)))
+		} else if tail.y == head.y {
+			tail.x += int(math.sign(f32(head.x - tail.x)))
+		} else {
+			tail.x += int(math.sign(f32(head.x - tail.x)))
+			tail.y += int(math.sign(f32(head.y - tail.y)))
+		}
+	}
+
+	for str in strings.split_iterator(&input, "\n") {
+		parts := strings.split_multi(str, {" ", "\n"})
+		dir := parts[0]
+		amount := strconv.atoi(parts[1])
+
+		heading : [2]int
+		switch dir {
+		case "U":
+			heading = {0, 1}
+		case "D":
+			heading = {0, -1}
+		case "L":
+			heading = {-1, 0}
+		case "R":
+			heading = {1, 0}
+		case:
+			unreachable()
+		}
+
+		for i in 0..<amount {
+			head += heading
+			ahead := head
+			for t, idx in &tails {
+				if !adjacent(ahead, t) {
+					move(&t, ahead)
+					if idx == 8 {
+						grid[t] = true
+					}
+				}
+				ahead = t
+			}
+		}
+	}
+	keys, _ := slice.map_keys(grid)
+	fmt.println(len(keys))
+}
+
 main :: proc() {
-	day8()
+	day9_part2()
 }
