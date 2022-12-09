@@ -576,11 +576,11 @@ day9_part1 :: proc() {
 
 day9_part2 :: proc() {
 	input := day9_input
-	grid : map[[2]int]bool
-	grid[{0,0}] = true
+	grid : map[[2]int]struct{}
+	grid[{0,0}] = {}
 
-	head : [2]int = {0, 0}
-	tails : [9][2]int = {}
+	head : [2]int
+	tails : [9][2]int
 
 	adjacent :: proc(a,b : [2]int) -> bool {
 		return !(abs(a.x-b.x) > 1 || abs(a.y-b.y) > 1)
@@ -623,15 +623,14 @@ day9_part2 :: proc() {
 				if !adjacent(ahead, t) {
 					move(&t, ahead)
 					if idx == 8 {
-						grid[t] = true
+						grid[t] = {}
 					}
 				}
 				ahead = t
 			}
 		}
 	}
-	keys, _ := slice.map_keys(grid)
-	fmt.println(len(keys))
+	fmt.println(len(grid))
 }
 
 main :: proc() {
