@@ -936,6 +936,7 @@ day12 :: proc() {
 		for ocidx in 0..<width {
 			if !(grid[oridx*width + ocidx] == 0) do continue
 			start = {ocidx, oridx}
+			/*fmt.println(start)*/
 
 			open_set := make([dynamic][2]int)
 			append(&open_set, end)
@@ -967,7 +968,7 @@ day12 :: proc() {
 					}
 					break find_path
 				}
-				ordered_remove(&open_set, min_idx)
+				unordered_remove(&open_set, min_idx)
 				
 				current_val := grid[current.y * width + current.x]
 				for i in -1..=1 {
@@ -987,7 +988,7 @@ day12 :: proc() {
 						}
 						neighbor_g := g_score[neighbor] or_else max(int)
 
-						if tentative_g <= neighbor_g {
+						if tentative_g < neighbor_g {
 							came_from[neighbor] = current
 							g_score[neighbor] = tentative_g
 							f_score[neighbor] = tentative_g + dist(neighbor, start)
