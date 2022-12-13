@@ -2,6 +2,7 @@ package day1
 
 import "core:fmt"
 import "core:math"
+import "core:math/big"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
@@ -18,6 +19,11 @@ day7_test_input : string = #load("day7_test.txt")
 day8_input : string = #load("day8.txt")
 day8_test_input : string = #load("day8_test.txt")
 day9_input : string = #load("day9.txt")
+day10_input : string = #load("day10.txt")
+day10_test_input : string = #load("day10_test.txt")
+day11_input : string = #load("day11.txt")
+day11_test_input : string = #load("day11_test.txt")
+day12_input : string = #load("day12.txt")
 
 day1 :: proc() {
 	elf : int
@@ -633,6 +639,370 @@ day9_part2 :: proc() {
 	fmt.println(len(grid))
 }
 
+day10 :: proc() {
+	input := day10_input
+	values := make([dynamic]int)
+	cycle_count := 1
+	value := 1
+	for str in strings.split_iterator(&input, "\n") {
+		parts := strings.split(str, " ")
+		if len(parts) == 1{
+			// noop
+			append(&values, value)
+			cycle_count += 1
+		} else if len(parts) == 2 {
+			//addx
+			v := strconv.atoi(parts[1])
+			append(&values, value)
+			append(&values, value)
+			value += v
+			cycle_count += 2
+		}
+	}
+	twenty := values[19]
+	sixty := values[59]
+	hundred := values[99]
+	hundred_forty := values[139]
+	hundred_eighty := values[179]
+	two_hundred_twenty := values[219]
+	// Part 1
+	sum := 20*twenty + 60*sixty + 100*hundred + 140*hundred_forty + hundred_eighty*180 + 220*two_hundred_twenty
+	fmt.println(sum)
+
+	// Part 2
+	for v, idx in values {
+		x_pos := idx % 40
+		if x_pos == 0 {
+			fmt.println()
+		}
+		if abs(v - x_pos) <= 1 {
+			fmt.print("#")
+		} else {
+			fmt.print(".")
+		}
+	}
+}
+
+day11 :: proc() {
+	monkey0 : [dynamic]u128 = {83, 88, 96, 79, 86, 88, 70}
+	monkey1 : [dynamic]u128 = {59, 63, 98, 85, 68, 72}
+	monkey2 : [dynamic]u128 = {90, 79, 97, 52, 90, 94, 71, 70}
+	monkey3 : [dynamic]u128 = {97, 55, 62}
+	monkey4 : [dynamic]u128 = {74, 54, 94, 76}
+	monkey5 : [dynamic]u128 = {58}
+	monkey6 : [dynamic]u128 = {66, 63}
+	monkey7 : [dynamic]u128 = {56, 56, 90, 96, 68}
+
+	monkeys : [8][dynamic]u128 = {monkey0, monkey1, monkey2, monkey3, monkey4, monkey5, monkey6, monkey7}
+
+	throws : [8]u128
+
+	mag :: 11 * 5 * 19 * 13 * 7 * 17 * 2 * 3
+	reduce :: proc(a : ^u128) {
+		for a^ > mag {
+			a^ -= mag
+		}
+	}
+
+	for round in 0..<10000 {
+		fmt.println(round)
+		for monkey, idx in &monkeys {
+			switch idx {
+			case 0:
+				for item in &monkey {
+					reduce(&item)
+					new := item * 5
+					/*new = new / 3*/
+					if new % 11 == 0 {
+						append(&monkeys[2], new)
+					} else {
+						append(&monkeys[3], new)
+					}
+				}
+			case 1:
+				for item in &monkey {
+					reduce(&item)
+					new := item * 11 
+					/*new = new / 3*/
+					if new % 5 == 0 {
+						append(&monkeys[4], new)
+					} else {
+						append(&monkeys[0], new)
+					}
+				}
+			case 2:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 2 
+					/*new = new / 3*/
+					if new % 19 == 0 {
+						append(&monkeys[5], new)
+					} else {
+						append(&monkeys[6], new)
+					}
+				}
+			case 3:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 5 
+					/*new = new / 3*/
+					if new % 13 == 0 {
+						append(&monkeys[2], new)
+					} else {
+						append(&monkeys[6], new)
+					}
+				}
+			case 4:
+				for item in &monkey {
+					reduce(&item)
+					new := item * item 
+					/*new = new / 3*/
+					if new % 7 == 0 {
+						append(&monkeys[0], new)
+					} else {
+						append(&monkeys[3], new)
+					}
+				}
+			case 5:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 4 
+					/*new = new / 3*/
+					if new % 17 == 0 {
+						append(&monkeys[7], new)
+					} else {
+						append(&monkeys[1], new)
+					}
+				}
+			case 6:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 6 
+					/*new = new / 3*/
+					if new % 2 == 0 {
+						append(&monkeys[7], new)
+					} else {
+						append(&monkeys[5], new)
+					}
+				}
+			case 7:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 7 
+					/*new = new / 3*/
+					if new % 3 == 0 {
+						append(&monkeys[4], new)
+					} else {
+						append(&monkeys[1], new)
+					}
+				}
+			case:
+				unreachable()
+			}
+			throws[idx] += u128(len(monkey))
+			clear(&monkey)
+		}
+	}
+
+	slice.reverse_sort(throws[:])
+	fmt.println(throws)
+	fmt.println(throws[0] * throws[1])
+}
+
+day11_test :: proc() {
+	monkey0 : [dynamic]u128 = {79, 98}
+	monkey1 : [dynamic]u128 = {54, 65, 75, 74}
+	monkey2 : [dynamic]u128 = {79, 60, 97}
+	monkey3 : [dynamic]u128 = {74}
+
+	monkeys : [4][dynamic]u128 = {monkey0, monkey1, monkey2, monkey3}
+
+	throws : [4]u128
+	fmt.println(monkeys)
+
+	mag :: 19 * 23 * 13 * 17
+	reduce :: proc(a : ^u128) {
+		for a^ > mag {
+			a^ -= mag
+		}
+	}
+
+	for round in 0..<10000 {
+		for monkey, idx in &monkeys {
+			switch idx {
+			case 0:
+				for item in &monkey {
+					reduce(&item)
+					new := item * 19 
+					/*new = new / 3*/
+					if new % 23 == 0 {
+						append(&monkeys[2], new)
+					} else {
+						append(&monkeys[3], new)
+					}
+				}
+			case 1:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 6 
+					/*new = new / 3*/
+					if new % 19 == 0 {
+						append(&monkeys[2], new)
+					} else {
+						append(&monkeys[0], new)
+					}
+				}
+			case 2:
+				for item in &monkey {
+					reduce(&item)
+					new := item * item 
+					/*new = new / 3*/
+					if new % 13 == 0 {
+						append(&monkeys[1], new)
+					} else {
+						append(&monkeys[3], new)
+					}
+				}
+			case 3:
+				for item in &monkey {
+					reduce(&item)
+					new := item + 3 
+					/*new = new / 3*/
+					if new % 17 == 0 {
+						append(&monkeys[0], new)
+					} else {
+						append(&monkeys[1], new)
+					}
+				}
+			case:
+				unreachable()
+			}
+			throws[idx] += u128(len(monkey))
+			clear(&monkey)
+		}
+	}
+
+	slice.reverse_sort(throws[:])
+	fmt.println(throws)
+	fmt.println(throws[0] * throws[1])
+}
+
+day12 :: proc() {
+	input := day12_input
+	lines := strings.split(input, "\n")
+	lines = lines[:len(lines) - 1] // remove extra empty line
+	// remove newline characters
+	for line in &lines {
+		line = strings.trim_space(line)
+	}
+	width := len(lines[0])
+	height := len(lines)
+
+	start : [2]int
+	end : [2]int
+	grid := make([]int, width*height)
+	for ridx in 0..<height {
+		for cidx in 0 ..<width {
+			if lines[ridx][cidx] == 'S' {
+				start = {cidx, ridx}
+				grid[ridx*width + cidx] = 'a' - 'a'
+			} else if lines[ridx][cidx] == 'E' {
+				end = {cidx, ridx}
+				grid[ridx*width + cidx] = 'z' - 'a'
+			} else {
+				grid[ridx*width + cidx] = int(lines[ridx][cidx]) - 'a'
+			}
+		}
+	}
+
+	dist :: proc(a,b : [2]int) -> int {
+		return (abs(b.x - a.x) + abs(b.y - a.y))
+	}
+
+	get_path :: proc(came_from : map[[2]int][2]int, current: [2]int) -> [dynamic][2]int {
+		path := make([dynamic][2]int)
+		curr := [2]int{current.x, current.y}
+		contains := current in came_from
+		for contains {
+			curr = came_from[curr]
+			contains = curr in came_from
+			append(&path, current)
+		}
+		return path 
+	}
+
+	min_steps := max(int)
+	for oridx in 0..<height {
+		for ocidx in 0..<width {
+			if !(grid[oridx*width + ocidx] == 0) do continue
+			start = {ocidx, oridx}
+
+			open_set := make([dynamic][2]int)
+			append(&open_set, end)
+			came_from := make(map[[2]int][2]int)
+
+			g_score := make(map[[2]int]int)
+			g_score[end] = 0
+
+			f_score := make(map[[2]int]int)
+			f_score[end] = dist(end, start)
+
+			find_path : for len(open_set) > 0 {
+				current : [2]int
+				min_f := max(int)
+				min_idx : int
+				for v, idx in open_set {
+					score := f_score[v] or_else max(int)
+					if score < min_f {
+						min_f = score
+						current = v
+						min_idx = idx
+					}
+				}
+
+				if current == start {
+					path := get_path(came_from, current)
+					if len(path) < min_steps {
+						min_steps = len(path)
+					}
+					break find_path
+				}
+				ordered_remove(&open_set, min_idx)
+				
+				current_val := grid[current.y * width + current.x]
+				for i in -1..=1 {
+					ridx := current.y + i
+					if ridx < 0 || ridx >= height do continue
+					for j in -1..=1 {
+						if i == 0 && j == 0 do continue
+						if (abs(i) + abs(j)) > 1 do continue
+						cidx := current.x + j
+						if cidx < 0 || cidx >= width do continue
+						neighbor := [2]int{cidx, ridx}
+
+						tentative_g := g_score[current] + 1
+						if (grid[ridx*width + cidx] - current_val < -1) {
+							// not an option. continue
+							continue
+						}
+						neighbor_g := g_score[neighbor] or_else max(int)
+
+						if tentative_g <= neighbor_g {
+							came_from[neighbor] = current
+							g_score[neighbor] = tentative_g
+							f_score[neighbor] = tentative_g + dist(neighbor, start)
+							if !slice.contains(open_set[:], neighbor) {
+								append(&open_set, neighbor)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	fmt.println(min_steps)
+}
+
 main :: proc() {
-	day9_part2()
+	day12()
 }
