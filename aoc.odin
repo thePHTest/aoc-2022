@@ -6,6 +6,7 @@ import "core:math/big"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
+import "core:text/scanner"
 import "core:unicode/utf8"
 
 day1_input : string = #load("day1.txt")
@@ -24,6 +25,9 @@ day10_test_input : string = #load("day10_test.txt")
 day11_input : string = #load("day11.txt")
 day11_test_input : string = #load("day11_test.txt")
 day12_input : string = #load("day12.txt")
+day13_input : string = #load("day13.txt")
+day13_part2_input : string = #load("day13_part2.txt")
+day13_test_input : string = #load("day13_test.txt")
 
 day1 :: proc() {
 	elf : int
@@ -1004,6 +1008,338 @@ day12 :: proc() {
 	fmt.println(min_steps)
 }
 
+day13 :: proc() {
+	List :: struct {
+		values : [dynamic]Data,
+	}
+
+	Data :: union {
+		^List,
+		int,
+	}
+
+	input := day13_input
+	lines := strings.split(input, "\n")
+	lines = lines[:len(lines)-1]
+
+	packets : [dynamic]^List
+	for packet_str in &lines {
+		packet_str = strings.trim_space(packet_str)
+		if packet_str == "" do continue
+		/*fmt.println(packet_str)*/
+		s : scanner.Scanner
+		scanner.init(&s, packet_str)
+
+		packet : ^List = new(List)
+		append(&packets, packet)
+
+		lists_stack := make([dynamic]^List)
+		curr_list : ^List = packet
+		for r := scanner.scan(&s); r != scanner.EOF; r = scanner.scan(&s) {
+			switch r {
+			case '[':
+				new_list := new(List)
+				append(&curr_list.values, new_list)
+				append(&lists_stack, curr_list)
+				curr_list = new_list
+			case ',':
+				// Do nothing
+			case ']':
+				curr_list = pop(&lists_stack)
+			case scanner.Int:
+				val := strconv.atoi(scanner.token_text(&s))
+				append(&curr_list.values, val)
+			case:
+				fmt.println("invalid token", r)
+				unreachable()
+			}
+		}
+	}
+
+	print_packet :: proc(packet : ^List) {
+		fmt.print("[")
+		for v in packet.values {
+			switch t in v {
+			case ^List:
+				print_packet(t)
+			case int:
+				fmt.print(t, ",")
+			}
+		}
+		fmt.print("]")
+	}
+
+	for p in packets {
+		fmt.println()
+		print_packet(p)
+		fmt.println()
+	}
+
+	Result :: enum {
+		Correct,
+		Incorrect,
+		Undecided,
+	}
+
+	compare :: proc(a, b: ^List) -> Result {
+		if len(a.values) == 0 && len(b.values) == 0 {
+			return .Undecided
+		} else if len(a.values) == 0 {
+			return .Correct
+		} else if len(b.values) == 0 {
+			return .Incorrect
+		}
+		lval := a.values[0]
+		rval := b.values[0]
+		switch t in lval {
+		case ^List:
+			switch t2 in rval {
+			case ^List:
+				switch compare(t, t2) {
+				case .Undecided:
+					//advance
+					ordered_remove(&a.values, 0)
+					ordered_remove(&b.values, 0)
+					return compare(a, b)
+				case .Correct:
+					return .Correct
+				case .Incorrect:
+					return .Incorrect
+				}
+			case int:
+				new_list := new(List)
+				append(&new_list.values, t2)
+				b.values[0] = new_list
+				return compare(a, b)
+			}
+		case int:
+			switch t2 in rval {
+			case ^List:
+				new_list := new(List)
+				append(&new_list.values, t)
+				a.values[0] = new_list
+				return compare(a, b)
+			case int:
+				if t == t2 {
+					//advance
+					ordered_remove(&a.values, 0)
+					ordered_remove(&b.values, 0)
+					return compare(a, b)
+				} else {
+					if t < t2 {
+						return .Correct
+					} else {
+						return .Incorrect
+					}
+				}
+			}
+		}
+		unreachable()
+	}
+
+	sum := 0
+	pair_index := 1
+	for i := 0; i < len(packets) - 2; i += 2 {
+		left := packets[i]
+		right := packets[i + 1]
+
+		result := compare(left,right)
+		fmt.println(result)
+		if result == .Correct {
+			sum += pair_index
+		}
+		pair_index += 1
+	}
+	fmt.println(sum)
+}
+
+day13_part2 :: proc() {
+	List :: struct {
+		values : [dynamic]Data,
+	}
+
+	Data :: union {
+		^List,
+		int,
+	}
+
+	input := day13_part2_input
+	lines := strings.split(input, "\n")
+	lines = lines[:len(lines)-1]
+
+	packets : [dynamic]^List
+	for packet_str in &lines {
+		packet_str = strings.trim_space(packet_str)
+		if packet_str == "" do continue
+		/*fmt.println(packet_str)*/
+		s : scanner.Scanner
+		scanner.init(&s, packet_str)
+
+		packet : ^List = new(List)
+		append(&packets, packet)
+
+		lists_stack := make([dynamic]^List)
+		curr_list : ^List = packet
+		for r := scanner.scan(&s); r != scanner.EOF; r = scanner.scan(&s) {
+			switch r {
+			case '[':
+				new_list := new(List)
+				append(&curr_list.values, new_list)
+				append(&lists_stack, curr_list)
+				curr_list = new_list
+			case ',':
+				// Do nothing
+			case ']':
+				curr_list = pop(&lists_stack)
+			case scanner.Int:
+				val := strconv.atoi(scanner.token_text(&s))
+				append(&curr_list.values, val)
+			case:
+				fmt.println("invalid token", r)
+				unreachable()
+			}
+		}
+	}
+
+	print_packet :: proc(packet : ^List) {
+		fmt.print("[")
+		for v in packet.values {
+			switch t in v {
+			case ^List:
+				print_packet(t)
+			case int:
+				fmt.print(t, ",")
+			}
+		}
+		fmt.print("]")
+	}
+
+	/*for p in packets {*/
+		/*fmt.println()*/
+		/*print_packet(p)*/
+		/*fmt.println()*/
+	/*}*/
+
+	Result :: enum {
+		Correct,
+		Incorrect,
+		Undecided,
+	}
+
+	compare :: proc(a, b: ^List) -> Result {
+		if len(a.values) == 0 && len(b.values) == 0 {
+			return .Undecided
+		} else if len(a.values) == 0 {
+			return .Correct
+		} else if len(b.values) == 0 {
+			return .Incorrect
+		}
+		lval := a.values[0]
+		rval := b.values[0]
+		switch t in lval {
+		case ^List:
+			switch t2 in rval {
+			case ^List:
+				switch compare(t, t2) {
+				case .Undecided:
+					//advance
+					ordered_remove(&a.values, 0)
+					ordered_remove(&b.values, 0)
+					return compare(a, b)
+				case .Correct:
+					return .Correct
+				case .Incorrect:
+					return .Incorrect
+				}
+			case int:
+				new_list := new(List)
+				append(&new_list.values, t2)
+				b.values[0] = new_list
+				return compare(a, b)
+			}
+		case int:
+			switch t2 in rval {
+			case ^List:
+				new_list := new(List)
+				append(&new_list.values, t)
+				a.values[0] = new_list
+				return compare(a, b)
+			case int:
+				if t == t2 {
+					//advance
+					ordered_remove(&a.values, 0)
+					ordered_remove(&b.values, 0)
+					return compare(a, b)
+				} else {
+					if t < t2 {
+						return .Correct
+					} else {
+						return .Incorrect
+					}
+				}
+			}
+		}
+		unreachable()
+	}
+
+	copy_list :: proc(a: ^List) -> ^List {
+		the_copy := new(List)
+		for v in a.values {
+			switch t in v {
+			case ^List:
+				append(&the_copy.values, copy_list(t))
+			case int:
+				append(&the_copy.values, t)
+			}
+		}
+		return the_copy
+	}
+
+	sort_cmp_proc :: proc(a,b : ^List) -> bool {
+		a_copy := copy_list(a)
+		b_copy := copy_list(b)
+		defer free(a_copy)
+		defer free(b_copy)
+		if compare(a_copy,b_copy) == .Correct {
+			return true
+		}
+		return false
+	}
+	slice.sort_by(packets[:], sort_cmp_proc)
+
+
+	reduce :: proc(b: ^strings.Builder, l: ^List) {
+		for v in l.values {
+			switch t in v {
+			case ^List:
+				strings.write_string(b, "[")
+				reduce(b, t)
+				strings.write_string(b, "]")
+			case int:
+				strings.write_int(b, t)
+				strings.write_string(b, ",")
+			}
+		}
+	}
+
+	two_idx : int
+	six_idx : int
+	for p,idx in packets {
+		b := strings.builder_make()
+		reduce(&b, p)
+		str := strings.to_string(b)
+		if str == "[[2,]]" {
+			fmt.println("found 2 packet")
+			two_idx = idx
+		} else if str == "[[6,]]" {
+			fmt.println("found 6 packet")
+			six_idx = idx
+		}
+	}
+	two_idx += 1
+	six_idx += 1
+	fmt.println(two_idx * six_idx)
+}
 main :: proc() {
-	day12()
+	day13_part2()
 }
