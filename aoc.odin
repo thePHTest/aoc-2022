@@ -7,6 +7,7 @@ import "core:slice"
 import "core:strconv"
 import "core:strings"
 import "core:text/scanner"
+import "core:time"
 import "core:unicode/utf8"
 
 day1_input : string = #load("day1.txt")
@@ -1351,6 +1352,7 @@ day14 :: proc() {
 	lines := strings.split(input, "\n")
 	lines = lines[:len(lines)-1]
 
+	max_y := min(int)
 	for line in &lines {
 		line = strings.trim_space(line)
 		coords := strings.split(line, " -> ")
@@ -1367,11 +1369,13 @@ day14 :: proc() {
 				start_y := min(start_coord.y, end_coord.y)
 				end_y := max(start_coord.y, end_coord.y)
 				for y in start_y ..= end_y {
+					max_y = max(max_y, y) 
 					grid[y][start_coord.x] = true
 				}
 			} else if start_coord.y == end_coord.y {
 				start_x := min(start_coord.x, end_coord.x)
 				end_x := max(start_coord.x, end_coord.x)
+				max_y = max(max_y, start_coord.y) 
 				for x in start_x ..= end_x {
 					grid[start_coord.y][x] = true
 				}
@@ -1383,16 +1387,6 @@ day14 :: proc() {
 		}
 	}
 
-	max_y := min(int)
-	for ridx in 0..<DIM {
-		for cidx in 0..<DIM {
-			if grid[ridx][cidx] {
-				if ridx > max_y {
-					max_y = ridx
-				}
-			}
-		}
-	}
 	floor := max_y + 2
 	for x in 0..<DIM {
 		grid[floor][x] = true
@@ -1425,9 +1419,14 @@ day14 :: proc() {
 			}
 		}
 	}
-	fmt.println(sand_count)
+	/*fmt.println(sand_count)*/
 }
 
 main :: proc() {
-	day14()
+	/*s2 := time.now()*/
+	/*for i in 0..<1000 {*/
+        day14()
+	/*}*/
+	/*e2 := time.now()*/
+	/*fmt.println("time:", time.diff(s2, e2) / time.Duration(1000))*/
 }
