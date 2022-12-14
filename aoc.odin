@@ -28,6 +28,7 @@ day12_input : string = #load("day12.txt")
 day13_input : string = #load("day13.txt")
 day13_part2_input : string = #load("day13_part2.txt")
 day13_test_input : string = #load("day13_test.txt")
+day14_input : string = #load("day14.txt")
 
 day1 :: proc() {
 	elf : int
@@ -1340,6 +1341,93 @@ day13_part2 :: proc() {
 	six_idx += 1
 	fmt.println(two_idx * six_idx)
 }
+
+day14 :: proc() {
+	input := day14_input
+	DIM :: 1000
+	grid := new([DIM][DIM]bool)
+	defer free(grid)
+
+	lines := strings.split(input, "\n")
+	lines = lines[:len(lines)-1]
+
+	for line in &lines {
+		line = strings.trim_space(line)
+		coords := strings.split(line, " -> ")
+		start_coord, end_coord : [2]int
+		for coord, idx in coords {
+			parts := strings.split(coord, ",")
+			if idx == 0 {
+				start_coord = {strconv.atoi(parts[0]), strconv.atoi(parts[1])}
+				continue
+			}
+
+			end_coord = {strconv.atoi(parts[0]), strconv.atoi(parts[1])}
+			if start_coord.x == end_coord.x {
+				start_y := min(start_coord.y, end_coord.y)
+				end_y := max(start_coord.y, end_coord.y)
+				for y in start_y ..= end_y {
+					grid[y][start_coord.x] = true
+				}
+			} else if start_coord.y == end_coord.y {
+				start_x := min(start_coord.x, end_coord.x)
+				end_x := max(start_coord.x, end_coord.x)
+				for x in start_x ..= end_x {
+					grid[start_coord.y][x] = true
+				}
+			} else {
+				panic("Invalid coordinates")
+			}
+
+			start_coord = end_coord
+		}
+	}
+
+	max_y := min(int)
+	for ridx in 0..<DIM {
+		for cidx in 0..<DIM {
+			if grid[ridx][cidx] {
+				if ridx > max_y {
+					max_y = ridx
+				}
+			}
+		}
+	}
+	floor := max_y + 2
+	for x in 0..<DIM {
+		grid[floor][x] = true
+	}
+
+	// Fill with sand
+	sand_count := 0
+	fill : for {
+		single : for {
+			curr_pos := [2]int{500, 0}
+			for {
+				// Uncomment these 3 lines for a part 1 answer
+				/*if curr_pos.y > max_y {*/
+					/*break fill*/
+				/*}*/
+				if !grid[curr_pos.y + 1][curr_pos.x] {
+					curr_pos += {0, 1}
+				} else if !grid[curr_pos.y + 1][curr_pos.x - 1] {
+					curr_pos += {-1, 1}
+				} else if !grid[curr_pos.y + 1][curr_pos.x + 1] {
+					curr_pos += {1, 1}
+				} else {
+					grid[curr_pos.y][curr_pos.x] = true
+					sand_count += 1
+					if curr_pos == {500, 0} {
+						break fill
+					}
+					break single
+				}
+			}
+		}
+	}
+	fmt.println(sand_count)
+}
+
 main :: proc() {
-	day13_part2()
+	day14()
 }
