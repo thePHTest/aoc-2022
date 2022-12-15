@@ -1569,11 +1569,11 @@ day15_part2 :: proc() {
 	data := data_points[:]
 	slice.sort_by(data, cmp)
 
-	ranges := make([][2]int, len(data_points)*2)
+	ranges := make([dynamic][2]int, len(data_points)*2)
 	/*DIM :: 4000000*/
 	DIM :: 4000000
 	for idx in 0..<DIM {
-		mem.zero_slice(ranges)
+		clear(&ranges)
 
 		// gather ranges
 		for d, data_idx in data_points {
@@ -1593,29 +1593,19 @@ day15_part2 :: proc() {
 			min_x := d.sensor.x - x_half
 			max_x := d.sensor.x + x_half
 			ranges[data_idx] = {min_x, max_x}
+			append(&ranges, [2]int{min_x, max_x})
 			if d.beacon.y == idx {
-				ranges[data_idx*2] = {d.beacon.x, d.beacon.x}
+				append(&ranges, [2]int{d.beacon.x, d.beacon.x})
 			}
 		}
 
 		range_cmp :: proc(a,b: [2]int) -> bool {
 			return a.x < b.x
 		}
-		slice.sort_by(ranges, range_cmp)
-
-		start_idx := 0
-		for range, range_idx in ranges {
-			if range != {} {
-				start_idx = range_idx
-				break
-			}
-		}
-		max_possible_x := ranges[start_idx].y + 1
-		for range in ranges[start_idx+1:] {
-			if range == {} {
-				// skip
-				continue
-			}
+		slice.sort_by(ranges[:], range_cmp)
+		
+		max_possible_x := ranges[0].y + 1
+		for range in ranges[1:] {
 			if !(range.x <= max_possible_x) {
 				// found the gap
 				/*fmt.println("~~~~~~~~~~~found distress~~~~")*/
@@ -1637,5 +1627,5 @@ main :: proc() {
 	day15_part2()
 	/*}*/
 	e2 := time.now()
-	fmt.println("time:", time.duration_milliseconds(time.diff(s2, e2)))
+	fmt.println("time:", time.duration_seconds(time.diff(s2, e2)))
 }
