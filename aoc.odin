@@ -1538,8 +1538,6 @@ day15_part2 :: proc() {
 		min_x, max_x, min_y, max_y : int,
 	}
 	data_points := make([dynamic]Data_Point)
-	sensors := make([dynamic][2]int)
-	beacons := make([dynamic][2]int)
 	distances := make([dynamic]int)
 
 	empty_set := make(map[[2]int]struct{})
@@ -1553,9 +1551,6 @@ day15_part2 :: proc() {
 		sensor : [2]int = {strconv.atoi(parts[1]), strconv.atoi(parts[2])}
 		beacon : [2]int = {strconv.atoi(parts[3]), strconv.atoi(parts[4])}
 		d := dist(sensor, beacon)
-		append(&sensors, sensor)
-		append(&beacons, beacon)
-		append(&distances, d)
 		min_x := sensor.x - d
 		max_x := sensor.x + d
 		min_y := sensor.y - d
@@ -1570,7 +1565,6 @@ day15_part2 :: proc() {
 	slice.sort_by(data, cmp)
 
 	ranges := make([dynamic][2]int, len(data_points)*2)
-	/*DIM :: 4000000*/
 	DIM :: 4000000
 	search: for idx in 0..<DIM {
 		clear(&ranges)
@@ -1584,10 +1578,6 @@ day15_part2 :: proc() {
 
 			// calculate the row coverage
 			y_diff := abs(d.sensor.y - idx)
-			if y_diff > d.distance {
-				/*fmt.println("shouldnt be here?")*/
-				continue
-			}
 			x_half := d.distance - y_diff
 
 			min_x := d.sensor.x - x_half
@@ -1608,10 +1598,8 @@ day15_part2 :: proc() {
 		for range in ranges[1:] {
 			if !(range.x <= max_possible_x) {
 				// found the gap
-				/*fmt.println("~~~~~~~~~~~found distress~~~~")*/
 				y := idx
 				freq := u128(4000000)*u128(max_possible_x) + u128(y)
-				/*fmt.println(max_possible_x, y)*/
 				fmt.println(freq)
 				break search
 			} else {
