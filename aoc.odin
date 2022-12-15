@@ -1572,7 +1572,7 @@ day15_part2 :: proc() {
 	ranges := make([dynamic][2]int, len(data_points)*2)
 	/*DIM :: 4000000*/
 	DIM :: 4000000
-	for idx in 0..<DIM {
+	search: for idx in 0..<DIM {
 		clear(&ranges)
 
 		// gather ranges
@@ -1613,7 +1613,7 @@ day15_part2 :: proc() {
 				freq := u128(4000000)*u128(max_possible_x) + u128(y)
 				/*fmt.println(max_possible_x, y)*/
 				fmt.println(freq)
-				break
+				break search
 			} else {
 				max_possible_x = max(max_possible_x, range.y+1)
 			}
