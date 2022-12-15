@@ -1,8 +1,10 @@
 package day1
 
+import "core:container/bit_array"
 import "core:fmt"
 import "core:math"
 import "core:math/big"
+import "core:mem"
 import "core:slice"
 import "core:strconv"
 import "core:strings"
@@ -30,6 +32,8 @@ day13_input : string = #load("day13.txt")
 day13_part2_input : string = #load("day13_part2.txt")
 day13_test_input : string = #load("day13_test.txt")
 day14_input : string = #load("day14.txt")
+day15_input : string = #load("day15.txt")
+day15_test_input : string = #load("day15_test.txt")
 
 day1 :: proc() {
 	elf : int
@@ -1422,11 +1426,216 @@ day14 :: proc() {
 	/*fmt.println(sand_count)*/
 }
 
-main :: proc() {
-	/*s2 := time.now()*/
-	/*for i in 0..<1000 {*/
-        day14()
+day15 :: proc() {
+	input := day15_input
+	sensors := make([dynamic][2]int)
+	beacons := make([dynamic][2]int)
+	distances := make([dynamic]int)
+
+	OCCUPANCE_ROW :: 2000000
+	/*OCCUPANCE_ROW :: 10*/
+	empty_set := make(map[[2]int]struct{})
+
+	dist :: proc(a,b : [2]int) -> int {
+		return abs(b.x - a.x) + abs(b.y - a.y)
+	}
+
+	for str in strings.split_lines_iterator(&input) {
+		parts := strings.split_multi(str, {"Sensor at x=", ", y=", ": closest beacon is at x="})
+		sensor : [2]int = {strconv.atoi(parts[1]), strconv.atoi(parts[2])}
+		beacon : [2]int = {strconv.atoi(parts[3]), strconv.atoi(parts[4])}
+		d := dist(sensor, beacon)
+		append(&sensors, sensor)
+		append(&beacons, beacon)
+		append(&distances, d)
+	}
+
+	beacon_min : [2]int = {0, 0}
+	beacon_max : [2]int = {4000000, 4000000}
+
+
+	using bit_array
+	fmt.println("before make")
+	/*unoccupied_set := make(map[[2]int]struct{})*/
+	occupied_set := create(1 + beacon_max.x*beacon_max.y)
+	fmt.println("after make")
+	/*for x in beacon_min.x..=beacon_max.x {*/
+		/*fmt.println(x)*/
+		/*for y in beacon_min.y..=beacon_max.y {*/
+			/*set(&unoccupied_set, x*y)*/
+		/*}*/
 	/*}*/
-	/*e2 := time.now()*/
-	/*fmt.println("time:", time.diff(s2, e2) / time.Duration(1000))*/
+	fmt.println("after fill")
+
+	for s, idx in &sensors {
+		max_dist := distances[idx]
+		for y in beacon_min.y..=beacon_max.y {
+			fmt.println(y)
+			y_dist := abs(s.y - y)
+			diff := max_dist - y_dist
+			if diff < 0 {
+				continue
+			}
+			x_len := diff*2 + 1
+
+			for x in -(x_len/2)..=(x_len/2) {
+				/*delete_key(&unoccupied_set, [2]int{x,y})*/
+				if x >= 0 {
+					set(occupied_set, y*beacon_max.y + x)
+				} else {
+					//skip
+				}
+			}
+		}
+	}
+
+	for b, idx in &beacons {
+		/*delete_key(&unoccupied_set, b)*/
+		set(occupied_set, b.y*beacon_max.y + b.x)
+	}
+	
+	/*fmt.println(unoccupied_set)*/
+
+	it := make_iterator(occupied_set)
+	for index in iterate_by_unset(&it) {
+		fmt.println("found distress")
+		y := index / beacon_max.y
+		x := index - (y*beacon_max.y)
+		freq := 4000000*x + y
+		fmt.println(freq)
+	}
+
+
+
+	/*for k,v in unoccupied_set {*/
+		/*fmt.println("found distress")*/
+		/*freq := 4000000*k.x + k.y*/
+		/*fmt.println(freq)*/
+	/*}*/
+
+	/*// find*/
+	/*for x in beacon_min.x..=beacon_max.x {*/
+			/*fmt.println("x", x)*/
+		/*for y in beacon_min.y..=beacon_max.y {*/
+			/*pos := [2]int{x,y}*/
+			/*if !(pos in empty_set) {*/
+				/*fmt.println("found distress")*/
+				/*freq := 4000000*x + y*/
+				/*fmt.println(freq)*/
+			/*}*/
+		/*}*/
+	/*}*/
+}
+
+day15_part2 :: proc() {
+	input := day15_input
+	
+	Data_Point :: struct {
+		sensor : [2]int,
+		beacon : [2]int,
+		distance : int,
+
+		min_x, max_x, min_y, max_y : int,
+	}
+	data_points := make([dynamic]Data_Point)
+	sensors := make([dynamic][2]int)
+	beacons := make([dynamic][2]int)
+	distances := make([dynamic]int)
+
+	empty_set := make(map[[2]int]struct{})
+
+	dist :: proc(a,b : [2]int) -> int {
+		return abs(b.x - a.x) + abs(b.y - a.y)
+	}
+
+	for str in strings.split_lines_iterator(&input) {
+		parts := strings.split_multi(str, {"Sensor at x=", ", y=", ": closest beacon is at x="})
+		sensor : [2]int = {strconv.atoi(parts[1]), strconv.atoi(parts[2])}
+		beacon : [2]int = {strconv.atoi(parts[3]), strconv.atoi(parts[4])}
+		d := dist(sensor, beacon)
+		append(&sensors, sensor)
+		append(&beacons, beacon)
+		append(&distances, d)
+		min_x := sensor.x - d
+		max_x := sensor.x + d
+		min_y := sensor.y - d
+		max_y := sensor.y + d
+		append(&data_points, Data_Point{sensor, beacon, d, min_x, max_x, min_y, max_y})
+	}
+
+	cmp :: proc(a,b: Data_Point) -> bool {
+		return a.min_x < b.min_x
+	}
+	data := data_points[:]
+	slice.sort_by(data, cmp)
+
+	ranges := make([][2]int, len(data_points)*2)
+	/*DIM :: 4000000*/
+	DIM :: 4000000
+	for idx in 0..<DIM {
+		mem.zero_slice(ranges)
+
+		// gather ranges
+		for d, data_idx in data_points {
+			// this sensor has no effect
+			if idx < d.min_y || idx > d.max_y {
+				continue
+			}
+
+			// calculate the row coverage
+			y_diff := abs(d.sensor.y - idx)
+			if y_diff > d.distance {
+				/*fmt.println("shouldnt be here?")*/
+				continue
+			}
+			x_half := d.distance - y_diff
+
+			min_x := d.sensor.x - x_half
+			max_x := d.sensor.x + x_half
+			ranges[data_idx] = {min_x, max_x}
+			if d.beacon.y == idx {
+				ranges[data_idx*2] = {d.beacon.x, d.beacon.x}
+			}
+		}
+
+		range_cmp :: proc(a,b: [2]int) -> bool {
+			return a.x < b.x
+		}
+		slice.sort_by(ranges, range_cmp)
+
+		start_idx := 0
+		for range, range_idx in ranges {
+			if range != {} {
+				start_idx = range_idx
+				break
+			}
+		}
+		max_possible_x := ranges[start_idx].y + 1
+		for range in ranges[start_idx+1:] {
+			if range == {} {
+				// skip
+				continue
+			}
+			if !(range.x <= max_possible_x) {
+				// found the gap
+				/*fmt.println("~~~~~~~~~~~found distress~~~~")*/
+				y := idx
+				freq := u128(4000000)*u128(max_possible_x) + u128(y)
+				/*fmt.println(max_possible_x, y)*/
+				fmt.println(freq)
+				break
+			} else {
+				max_possible_x = max(max_possible_x, range.y+1)
+			}
+		}
+	}
+}
+
+main :: proc() {
+	s2 := time.now()
+	/*for i in 0..<1000 {*/
+	day15_part2()
+	/*}*/
+	e2 := time.now()
+	fmt.println("time:", time.duration_milliseconds(time.diff(s2, e2)))
 }
