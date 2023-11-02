@@ -34,6 +34,7 @@ day13_test_input : string = #load("day13_test.txt")
 day14_input : string = #load("day14.txt")
 day15_input : string = #load("day15.txt")
 day15_test_input : string = #load("day15_test.txt")
+day16_input : string = #load("day16.txt")
 
 day1 :: proc() {
 	elf : int
@@ -1609,10 +1610,78 @@ day15_part2 :: proc() {
 	}
 }
 
+day16 :: proc() {
+	Loc :: struct {
+		name : string,
+		rate : int,
+		neighbors : [dynamic]string,
+		opened : bool,
+	}
+
+	locs : map[string]Loc
+
+	input := day16_input
+	for str in strings.split_lines_iterator(&input) {
+		parts := strings.split_multi(str, {"Valve ", " has flow rate=", "; tunnels lead to valves ", "tunnel leads to valve "})
+		fmt.println(parts)
+		name := parts[1]
+		rate := strconv.atoi(parts[2])
+		neighbors_str := parts[3]
+
+		locs[name] = {name, rate, {}, false}
+		curr := &locs[name]
+		for n in strings.split_iterator(&neighbors_str, ",") {
+			trimmed := strings.trim_space(n)
+			append(&curr.neighbors, trimmed)
+		}
+	}
+
+	find_best_neighbor :: proc(loc : ^Loc, locs: map[string]Loc, visited: ^[dynamic]^Loc) -> (^[dynamic]^Loc, ^Loc) {
+		append(visisted, loc)
+		queue := make([dynamic]^Loc)
+		for n in loc.neighbors {
+			append(&queue, &locs[n])
+		}
+		for len(queue) > 0 {
+			v := pop(&queue)
+			if v.
+		}
+	}
+
+	minute := 1
+	total_flow := 0
+	total_release := 0
+	curr := &locs["AA"]
+	for minute <= 30 {
+		total_release += total_flow
+		if curr.opened || curr.rate == 0 {
+			visited := make([dynamic]^Loc)
+			append(&visited, curr)
+			path, end := find_best_neighbor(curr, locs, &visited)
+			fmt.println(path, end)
+			if len(path) > 1 {
+				curr = path[1]
+
+			} else {
+				curr = end
+			}
+			fmt.printf("[{}]Moving to {}\n", minute, curr)
+		} else {
+			// open the current valve
+			fmt.printf("[{}]Opening {}\n", minute, curr.name)
+			curr.opened = true
+			total_flow += curr.rate
+		}
+		minute += 1
+	}
+	fmt.println(total_flow)
+	fmt.println(total_release)
+}
+
 main :: proc() {
 	s2 := time.now()
 	/*for i in 0..<1000 {*/
-	day15_part2()
+	day16()
 	/*}*/
 	e2 := time.now()
 	fmt.println("time:", time.duration_seconds(time.diff(s2, e2)))
